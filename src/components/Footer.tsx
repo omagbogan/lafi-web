@@ -76,8 +76,8 @@ export const Footer: React.FC<FooterProps> = ({ isSeller, onSelectCategory }) =>
             <div className="pt-1">
               {/* Bouton de Téléchargement Direct APK */}
               <a
-                href="/lafi.apk"
-                download="lafi.apk"
+                href="https://github.com/omagbogan/Lafi/releases/download/v1.0.0/Lafi.App.apk"
+                download="Lafi.App.apk"
                 className="flex items-center gap-3.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white px-4 py-3 rounded-2xl transition shadow-lg shadow-blue-600/20 hover:shadow-blue-500/30 group w-full sm:w-fit min-w-[220px] no-underline border-0 cursor-pointer"
               >
                 <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
