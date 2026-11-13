@@ -269,7 +269,7 @@ export const NotificationsDrawer: React.FC<NotificationsDrawerProps> = ({
         onClick={onClose}
       />
 
-      <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+      <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10">
         <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col border-0">
           
           {/* Header Volet Notifications */}

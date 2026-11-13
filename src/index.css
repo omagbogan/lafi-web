@@ -23,6 +23,7 @@
     background-color: #F6F8FD;
     color: #0F172A;
     min-height: 100vh;
+    overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

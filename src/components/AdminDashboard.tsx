@@ -386,8 +386,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <ShieldCheck className="w-6 h-6 text-white" />
             </div>
             <div>
-              <div className="flex items-center gap-2.5">
-                <h1 className="text-lg sm:text-xl font-black tracking-tight">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-base sm:text-xl font-black tracking-tight">
                   Centre de Contrôle Super-Admin
                 </h1>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
@@ -395,13 +395,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   TEMPS RÉEL ({lastUpdated || 'synchro...'})
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-slate-400 break-all">
                 Connecté en tant que <span className="text-slate-200 font-semibold">{user.email}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <button
               onClick={() => loadData(false)}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition"
@@ -642,7 +642,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="lg:col-span-5">
               <form
                 onSubmit={handleCreateArticle}
-                className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4 sticky top-24"
+                className="bg-white rounded-3xl p-4 sm:p-6 border border-slate-200/80 shadow-sm space-y-4 lg:sticky lg:top-24"
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
@@ -900,7 +900,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 overview?.articles.map((art) => (
                   <div
                     key={art.id}
-                    className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between gap-4"
+                    className="bg-white rounded-2xl p-3.5 sm:p-4 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <img
@@ -1185,10 +1185,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 overview?.shops.map((shop) => (
                   <div
                     key={shop.id}
-                    className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between gap-4"
+                    className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
                         <h4 className="text-sm font-black text-slate-900">{shop.name}</h4>
                         <span
                           className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
@@ -1251,10 +1251,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               overview?.customers.map((c) => (
                 <div
                   key={c.id}
-                  className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex items-center justify-between gap-4"
+                  className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4"
                 >
-                  <div>
-                    <div className="flex items-center gap-2">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h4 className="text-sm font-black text-slate-900">{c.name}</h4>
                       <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[11px] font-bold">
                         {c.orders_count} commande(s)

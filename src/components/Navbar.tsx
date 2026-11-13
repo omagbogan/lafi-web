@@ -6,7 +6,8 @@ import {
   X,
   Store,
   Bell,
-  Monitor
+  Monitor,
+  Menu
 } from 'lucide-react';
 import { LafiLogo } from './LafiLogo';
 import type { User as UserType } from '../types';
@@ -41,6 +42,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const isSeller = Boolean(user && user.role === 'commercant');
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -70,18 +72,19 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-50 bg-[#070B14] text-white border-b border-white/5 transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between gap-4 sm:gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-2 sm:gap-6">
         {/* Vector SVG Official Lafi Logo */}
         <div 
           className="flex items-center cursor-pointer select-none group shrink-0" 
           onClick={() => {
             onSelectNav(isSeller ? 'dashboard' : 'home');
+            setMobileMenuOpen(false);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         >
           <LafiLogo 
             variant="dark"
-            className="h-9 sm:h-11 w-auto transition-transform duration-200 group-hover:scale-105" 
+            className="h-8 sm:h-11 w-auto transition-transform duration-200 group-hover:scale-105" 
           />
         </div>
 
@@ -108,9 +111,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         )}
 
         {/* Right Section: Always-Visible Search Bar & Action Icons */}
-        <div className="flex items-center gap-3 sm:gap-4">
+        <div className="flex items-center gap-1.5 sm:gap-4 min-w-0">
           {/* Always Visible Search Bar */}
-          <div className="relative flex items-center bg-slate-900/90 border border-slate-700/80 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 rounded-full px-3.5 py-1.5 transition-all w-36 sm:w-56 md:w-64 lg:w-72">
+          <div className="relative flex items-center bg-slate-900/90 border border-slate-700/80 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 rounded-full px-2.5 sm:px-3.5 py-1.5 transition-all w-28 min-[400px]:w-36 sm:w-56 md:w-64 lg:w-72">
             <Search className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
             <input
               type="text"
@@ -198,7 +201,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={onOpenCart}
-              className="relative text-slate-300 hover:text-white p-2 rounded-full hover:bg-white/5 transition border-0 cursor-pointer"
+              className="relative text-slate-300 hover:text-white p-1.5 sm:p-2 rounded-full hover:bg-white/5 transition border-0 cursor-pointer"
               title="Panier d'achats"
             >
               <ShoppingBag className="w-5 h-5" />
@@ -209,8 +212,43 @@ export const Navbar: React.FC<NavbarProps> = ({
               )}
             </button>
           )}
+
+          {/* Bouton Menu Mobile */}
+          {navLinks.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              className="md:hidden text-slate-300 hover:text-white p-1.5 rounded-full hover:bg-white/5 transition border-0 cursor-pointer"
+              aria-label="Menu de navigation"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Menu déroulant Mobile */}
+      {mobileMenuOpen && navLinks.length > 0 && (
+        <nav className="md:hidden bg-[#0B1120] border-t border-white/10 px-4 py-3 flex flex-col gap-1.5">
+          {navLinks.map((link) => (
+            <button
+              key={link.id}
+              type="button"
+              onClick={() => {
+                onSelectNav(link.id);
+                setMobileMenuOpen(false);
+              }}
+              className={`w-full text-left px-3 py-2.5 rounded-xl text-sm font-semibold transition ${
+                activeNav === link.id
+                  ? 'bg-blue-600 text-white'
+                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
+              }`}
+            >
+              {link.label}
+            </button>
+          ))}
+        </nav>
+      )}
     </header>
   );
 };

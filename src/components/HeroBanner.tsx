@@ -12,16 +12,16 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
   return (
     <section className="relative overflow-hidden bg-[#070B14] text-white pt-8 pb-16 lg:pt-14 lg:pb-24">
       {/* Background Ambient Radial Glow */}
-      <div className="absolute top-1/2 right-[20%] -translate-y-1/2 w-[580px] h-[580px] bg-blue-600/20 rounded-full blur-[140px] pointer-events-none" />
+      <div className="absolute top-1/2 right-[20%] -translate-y-1/2 w-[300px] h-[300px] sm:w-[580px] sm:h-[580px] bg-blue-600/20 rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
         {/* Left Column: Headlines & Single Blue CTA Button */}
-        <div className="lg:col-span-6 space-y-6 z-10">
+        <div className="lg:col-span-6 space-y-5 sm:space-y-6 z-10">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.25em] text-[#3B82F6]">
             COMMERCE DE PROXIMITÉ & IA
           </p>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-black tracking-[-0.03em] text-white leading-[1.08]">
+          <h1 className="text-3xl sm:text-5xl lg:text-[64px] font-black tracking-[-0.03em] text-white leading-[1.08]">
             Le Commerce Local. <br />
             Propulsé par l'IA.
           </h1>
@@ -56,7 +56,7 @@ export const HeroBanner: React.FC<HeroBannerProps> = ({
                 <img
                   src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=800&auto=format&fit=crop&q=80"
                   alt="Présentation des articles connectés"
-                  className="w-full max-h-[440px] object-cover rounded-3xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-white/10 transition-transform duration-500 group-hover:scale-[1.02]"
+                  className="w-full max-h-[280px] sm:max-h-[380px] lg:max-h-[440px] object-cover rounded-3xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.8)] border border-white/10 transition-transform duration-500 group-hover:scale-[1.02]"
                 />
 
                 <div className="absolute -inset-1 bg-gradient-to-t from-blue-500/20 via-transparent to-transparent rounded-3xl -z-10 blur-lg" />
