@@ -487,6 +487,7 @@ export async function adminCreateArticle(data: {
   category: string;
   description?: string;
   photo_url?: string;
+  photos?: string[];
   shop_id?: number;
   shop_name?: string;
   shop_phone?: string;

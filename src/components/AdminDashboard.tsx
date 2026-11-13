@@ -67,7 +67,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [artPrice, setArtPrice] = useState('');
   const [artCategory, setArtCategory] = useState<string>('Alimentation');
   const [artDescription, setArtDescription] = useState('');
-  const [artPhotoUrl, setArtPhotoUrl] = useState('');
+  const [artPhotos, setArtPhotos] = useState<string[]>([]);
+  const [artPhotoInput, setArtPhotoInput] = useState('');
   const [artShopName, setArtShopName] = useState('Boutique Officielle Lafi');
   const [artShopPhone, setArtShopPhone] = useState('0700000001');
   const [artShopAddress, setArtShopAddress] = useState('Cocody, Abidjan');
@@ -107,40 +108,58 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return () => clearInterval(interval);
   }, [loadData]);
 
-  // Téléversement d'une photo + classification IA automatique
+  // Téléversement de plusieurs photos en même temps + classification IA automatique
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
     setUploadingPhoto(true);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await fetch(`${API_BASE}/uploads`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (!res.ok) throw new Error('Erreur téléversement image');
-      const uploaded = await res.json();
-      const url = uploaded.enhanced_url || uploaded.url;
-      setArtPhotoUrl(url);
+      const uploadedUrls: string[] = [];
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch(`${API_BASE}/uploads`, {
+          method: 'POST',
+          body: formData,
+        });
+        if (!res.ok) throw new Error('Erreur téléversement image');
+        const uploaded = await res.json();
+        const url = uploaded.enhanced_url || uploaded.url;
+        if (url) uploadedUrls.push(url);
+      }
 
-      // Classification visuelle MobileNetV2
+      if (uploadedUrls.length > 0) {
+        setArtPhotos((prev) => [...prev, ...uploadedUrls]);
+      }
+
+      // Classification visuelle sur la première photo envoyée
       try {
-        const visionRes = await suggestCategoryFromImage(file);
+        const visionRes = await suggestCategoryFromImage(files[0]);
         if (visionRes?.category && CATEGORIES.includes(visionRes.category)) {
           setArtCategory(visionRes.category);
-          showMessage('success', `Photo téléversée · Catégorie IA détectée : ${visionRes.category}`);
+          showMessage(
+            'success',
+            `${uploadedUrls.length} photo(s) téléversée(s) · Catégorie IA détectée : ${visionRes.category}`
+          );
         } else {
-          showMessage('success', 'Photo téléversée avec succès.');
+          showMessage('success', `${uploadedUrls.length} photo(s) téléversée(s) avec succès.`);
         }
       } catch {
-        showMessage('success', 'Photo téléversée avec succès.');
+        showMessage('success', `${uploadedUrls.length} photo(s) téléversée(s) avec succès.`);
       }
     } catch {
-      showMessage('error', "Échec de l'envoi de la photo.");
+      showMessage('error', "Échec de l'envoi d'une ou plusieurs photos.");
     } finally {
       setUploadingPhoto(false);
+      e.target.value = '';
     }
+  };
+
+  const handleAddPhotoUrl = () => {
+    const clean = artPhotoInput.trim();
+    if (!clean) return;
+    setArtPhotos((prev) => (prev.includes(clean) ? prev : [...prev, clean]));
+    setArtPhotoInput('');
   };
 
   // Suggestion IA de catégorie + génération de description
@@ -179,12 +198,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
     setActionLoading(true);
     try {
+      const pendingUrl = artPhotoInput.trim();
+      const finalPhotos = pendingUrl && !artPhotos.includes(pendingUrl)
+        ? [...artPhotos, pendingUrl]
+        : artPhotos;
+
       await adminCreateArticle({
         name: artName.trim(),
         price: Number(artPrice),
         category: artCategory,
         description: artDescription.trim() || undefined,
-        photo_url: artPhotoUrl.trim() || undefined,
+        photo_url: finalPhotos[0] || undefined,
+        photos: finalPhotos.length > 0 ? finalPhotos : undefined,
         shop_name: artShopName.trim() || 'Boutique Officielle Lafi',
         shop_phone: artShopPhone.trim() || '0700000001',
         shop_address: artShopAddress.trim() || 'Cocody, Abidjan',
@@ -192,7 +217,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setArtName('');
       setArtPrice('');
       setArtDescription('');
-      setArtPhotoUrl('');
+      setArtPhotos([]);
+      setArtPhotoInput('');
       await loadData(true);
       onRefreshCatalogue();
       showMessage('success', 'Article ajouté et publié en direct sur la plateforme !');
@@ -594,10 +620,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
                 </div>
 
-                {/* Photo (téléversement fichier ou URL) */}
+                {/* Photos multiples (téléversement multiple ou URLs) */}
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Photo du produit (Fichier ou URL)
+                    Photos du produit ({artPhotos.length} sélectionnée{artPhotos.length > 1 ? 's' : ''})
                   </label>
                   <div className="flex items-center gap-2">
                     <label className="cursor-pointer inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition shrink-0">
@@ -606,17 +632,59 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       ) : (
                         <Upload className="w-4 h-4" />
                       )}
-                      Choisir une photo
-                      <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+                      Choisir des photos
+                      <input type="file" accept="image/*" multiple onChange={handleFileUpload} className="hidden" />
                     </label>
                     <input
                       type="text"
-                      value={artPhotoUrl}
-                      onChange={(e) => setArtPhotoUrl(e.target.value)}
+                      value={artPhotoInput}
+                      onChange={(e) => setArtPhotoInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddPhotoUrl();
+                        }
+                      }}
                       placeholder="Ou coller une URL https://..."
                       className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
+                    {artPhotoInput.trim() && (
+                      <button
+                        type="button"
+                        onClick={handleAddPhotoUrl}
+                        className="px-3 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold hover:bg-blue-700 shrink-0"
+                      >
+                        +
+                      </button>
+                    )}
                   </div>
+
+                  {artPhotos.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2.5">
+                      {artPhotos.map((url, idx) => (
+                        <div key={`${url}-${idx}`} className="relative group w-16 h-16 rounded-xl overflow-hidden border border-slate-200 bg-slate-100">
+                          <img
+                            src={resolveImageUrl(url)}
+                            alt={`Aperçu ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          {idx === 0 && (
+                            <span className="absolute bottom-0 inset-x-0 bg-blue-600/90 text-white text-[9px] font-bold text-center py-0.5">
+                              Principale
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => setArtPhotos((prev) => prev.filter((_, i) => i !== idx))}
+                            className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-slate-900/80 text-white text-[10px] font-bold flex items-center justify-center hover:bg-rose-600 transition"
+                            title="Retirer cette photo"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Boutique associée */}
