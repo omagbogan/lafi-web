@@ -43,78 +43,14 @@ function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)} km`;
 }
 
-// Boutiques partenaires de référence à Abidjan (garantit une expérience complète en démo/soutenance)
-const DEFAULT_PARTNER_SHOPS: Shop[] = [
-  {
-    id: 1,
-    name: 'Zeus Store',
-    phone: '+225 05 03 88 88 64',
-    is_open: true,
-    owner_name: 'Zeus Tech',
-    address: 'Angré 8ème Tranche, Cocody',
-    lat: 5.39235,
-    lng: -3.98016,
-  },
-  {
-    id: 2,
-    name: 'Midev Électronique',
-    phone: '+225 01 72 72 32 92',
-    is_open: true,
-    owner_name: 'Michel Dev',
-    address: 'Zone 4, Marcory, Lagunes',
-    lat: 5.29582,
-    lng: -3.97835,
-  },
-  {
-    id: 3,
-    name: 'Chez Aïcha Mode & Wax',
-    phone: '+225 07 00 00 00 01',
-    is_open: true,
-    owner_name: 'Aïcha Coulibaly',
-    address: 'Avenue Chardy, Le Plateau',
-    lat: 5.3265,
-    lng: -4.0195,
-  },
-  {
-    id: 4,
-    name: 'Maman Awa Saveurs Locales',
-    phone: '+225 07 00 00 00 02',
-    is_open: true,
-    owner_name: 'Awa Traoré',
-    address: 'Marché de Cocody Centre',
-    lat: 5.3480,
-    lng: -3.9920,
-  },
-  {
-    id: 5,
-    name: 'Beauté Naturelle & Karité',
-    phone: '+225 07 00 00 00 03',
-    is_open: false,
-    owner_name: 'Fatou K.',
-    address: 'Boulevard Latrille, II Plateaux',
-    lat: 5.3720,
-    lng: -3.9985,
-  },
-  {
-    id: 6,
-    name: 'Tech Ivoire Yopougon',
-    phone: '+225 07 00 00 00 04',
-    is_open: true,
-    owner_name: 'Karim B.',
-    address: 'Quartier Selmer, Yopougon',
-    lat: 5.3390,
-    lng: -4.0720,
-  },
-];
-
 export const InteractiveMapModal: React.FC<InteractiveMapModalProps> = ({
   isOpen,
   onClose,
   onSelectShopFilter,
   articles,
 }) => {
-  const [shops, setShops] = useState<Shop[]>(DEFAULT_PARTNER_SHOPS);
-  const [selectedShopId, setSelectedShopId] = useState<number | null>(1);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [selectedShopId, setSelectedShopId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<'all' | 'open' | 'near'>('all');
   const [viewMode, setViewMode] = useState<'both' | 'map' | 'list'>('both');
@@ -142,13 +78,9 @@ export const InteractiveMapModal: React.FC<InteractiveMapModalProps> = ({
     fetchShops().then((apiShops) => {
       if (!isMounted) return;
 
-      // Combiner les boutiques de l'API avec les partenaires de référence
+      // Enregistrer uniquement les boutiques réelles reçues de l'API
       const mergedMap = new Map<string, Shop>();
 
-      // D'abord les partenaires de référence
-      DEFAULT_PARTNER_SHOPS.forEach((s) => mergedMap.set(s.name.toLowerCase(), s));
-
-      // Ensuite les boutiques reçues de l'API (prennent la priorité si même nom)
       apiShops.forEach((s) => {
         mergedMap.set(s.name.toLowerCase(), s);
       });
