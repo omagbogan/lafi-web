@@ -1,0 +1,33 @@
+{
+  "name": "Lafi — Marché de proximité & IA (Desktop)",
+  "short_name": "Lafi",
+  "description": "Application Bureau Lafi — Commerce de proximité, recherche visuelle par IA et suivi de commande en temps réel.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#070B14",
+  "theme_color": "#070B14",
+  "categories": ["shopping", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/lafi-emblem.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/lafi-emblem.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
+
