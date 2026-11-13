@@ -18,15 +18,19 @@ import {
   AlertTriangle,
   Cpu,
   TrendingUp,
-  Key
+  Key,
+  Pencil,
+  X
 } from 'lucide-react';
-import type { AdminOverview, User as UserType } from '../types';
+import type { AdminOverview, Article, User as UserType } from '../types';
 import {
   API_BASE,
   fetchAdminOverview,
   adminCreateArticle,
+  adminUpdateArticle,
   adminDeleteArticle,
   adminCreateShop,
+  adminUpdateShop,
   adminDeleteShop,
   adminUpdateOrderStatus,
   adminDeleteOrder,
@@ -62,7 +66,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [actionLoading, setActionLoading] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
 
-  // Formulaire d'ajout d'article de test
+  // Formulaire d'ajout / modification d'article
+  const [editingArticleId, setEditingArticleId] = useState<number | null>(null);
   const [artName, setArtName] = useState('');
   const [artPrice, setArtPrice] = useState('');
   const [artCategory, setArtCategory] = useState<string>('Alimentation');
@@ -75,11 +80,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
 
-  // Formulaire d'ajout de boutique
+  // Formulaire d'ajout / modification de boutique
+  const [editingShopId, setEditingShopId] = useState<number | null>(null);
   const [newShopName, setNewShopName] = useState('');
   const [newShopOwner, setNewShopOwner] = useState('');
   const [newShopPhone, setNewShopPhone] = useState('');
   const [newShopAddress, setNewShopAddress] = useState('Abidjan');
+  const [newShopIsOpen, setNewShopIsOpen] = useState(true);
 
   const showMessage = (type: 'success' | 'error', text: string) => {
     setFeedback({ type, text });
@@ -190,6 +197,42 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const resetArticleForm = () => {
+    setEditingArticleId(null);
+    setArtName('');
+    setArtPrice('');
+    setArtCategory('Alimentation');
+    setArtDescription('');
+    setArtPhotos([]);
+    setArtPhotoInput('');
+    setArtShopName('Boutique Officielle Lafi');
+    setArtShopPhone('0700000001');
+    setArtShopAddress('Cocody, Abidjan');
+  };
+
+  const startEditArticle = (art: Article) => {
+    setEditingArticleId(art.id);
+    setArtName(art.name);
+    setArtPrice(String(art.price));
+    setArtCategory(art.category);
+    setArtDescription(art.description || '');
+    const existingPhotos =
+      art.photos && art.photos.length > 0
+        ? art.photos
+        : art.photo_url
+          ? [art.photo_url]
+          : [];
+    setArtPhotos(existingPhotos);
+    setArtPhotoInput('');
+    const matchedShop = overview?.shops.find(
+      (s) => s.id === art.shop_id || s.name === art.shop
+    );
+    setArtShopName(matchedShop?.name || art.shop || 'Boutique Officielle Lafi');
+    setArtShopPhone(matchedShop?.phone || art.shop_phone || '0700000001');
+    setArtShopAddress(matchedShop?.address || 'Cocody, Abidjan');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleCreateArticle = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!artName.trim() || !artPrice || Number(artPrice) <= 0) {
@@ -203,27 +246,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         ? [...artPhotos, pendingUrl]
         : artPhotos;
 
-      await adminCreateArticle({
-        name: artName.trim(),
-        price: Number(artPrice),
-        category: artCategory,
-        description: artDescription.trim() || undefined,
-        photo_url: finalPhotos[0] || undefined,
-        photos: finalPhotos.length > 0 ? finalPhotos : undefined,
-        shop_name: artShopName.trim() || 'Boutique Officielle Lafi',
-        shop_phone: artShopPhone.trim() || '0700000001',
-        shop_address: artShopAddress.trim() || 'Cocody, Abidjan',
-      });
-      setArtName('');
-      setArtPrice('');
-      setArtDescription('');
-      setArtPhotos([]);
-      setArtPhotoInput('');
-      await loadData(true);
-      onRefreshCatalogue();
-      showMessage('success', 'Article ajouté et publié en direct sur la plateforme !');
+      if (editingArticleId !== null) {
+        await adminUpdateArticle(editingArticleId, {
+          name: artName.trim(),
+          price: Number(artPrice),
+          category: artCategory,
+          description: artDescription.trim(),
+          photo_url: finalPhotos[0] || '',
+          photos: finalPhotos,
+          shop_name: artShopName.trim() || 'Boutique Officielle Lafi',
+          shop_phone: artShopPhone.trim() || '0700000001',
+          shop_address: artShopAddress.trim() || 'Cocody, Abidjan',
+        });
+        resetArticleForm();
+        await loadData(true);
+        onRefreshCatalogue();
+        showMessage('success', 'Article modifié avec succès !');
+      } else {
+        await adminCreateArticle({
+          name: artName.trim(),
+          price: Number(artPrice),
+          category: artCategory,
+          description: artDescription.trim() || undefined,
+          photo_url: finalPhotos[0] || undefined,
+          photos: finalPhotos.length > 0 ? finalPhotos : undefined,
+          shop_name: artShopName.trim() || 'Boutique Officielle Lafi',
+          shop_phone: artShopPhone.trim() || '0700000001',
+          shop_address: artShopAddress.trim() || 'Cocody, Abidjan',
+        });
+        resetArticleForm();
+        await loadData(true);
+        onRefreshCatalogue();
+        showMessage('success', 'Article ajouté et publié en direct sur la plateforme !');
+      }
     } catch (err: any) {
-      showMessage('error', err.message || "Erreur lors de l'ajout de l'article.");
+      showMessage('error', err.message || "Erreur lors de l'enregistrement de l'article.");
     } finally {
       setActionLoading(false);
     }
@@ -258,6 +315,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  const resetShopForm = () => {
+    setEditingShopId(null);
+    setNewShopName('');
+    setNewShopOwner('');
+    setNewShopPhone('');
+    setNewShopAddress('Abidjan');
+    setNewShopIsOpen(true);
+  };
+
+  const startEditShop = (shop: NonNullable<AdminOverview['shops']>[number]) => {
+    setEditingShopId(shop.id);
+    setNewShopName(shop.name);
+    setNewShopOwner(shop.owner_name || '');
+    setNewShopPhone(shop.phone);
+    setNewShopAddress(shop.address || 'Abidjan');
+    setNewShopIsOpen(shop.is_open);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleCreateShop = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newShopName.trim() || !newShopPhone.trim()) {
@@ -266,20 +342,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
     setActionLoading(true);
     try {
-      await adminCreateShop({
-        name: newShopName.trim(),
-        owner_name: newShopOwner.trim() || 'Administrateur',
-        phone: newShopPhone.trim(),
-        address: newShopAddress.trim() || 'Abidjan',
-      });
-      setNewShopName('');
-      setNewShopOwner('');
-      setNewShopPhone('');
-      await loadData(true);
-      onRefreshCatalogue();
-      showMessage('success', 'Boutique créée avec succès.');
+      if (editingShopId !== null) {
+        await adminUpdateShop(editingShopId, {
+          name: newShopName.trim(),
+          owner_name: newShopOwner.trim() || 'Administrateur',
+          phone: newShopPhone.trim(),
+          address: newShopAddress.trim() || 'Abidjan',
+          is_open: newShopIsOpen,
+        });
+        resetShopForm();
+        await loadData(true);
+        onRefreshCatalogue();
+        showMessage('success', 'Boutique modifiée avec succès.');
+      } else {
+        await adminCreateShop({
+          name: newShopName.trim(),
+          owner_name: newShopOwner.trim() || 'Administrateur',
+          phone: newShopPhone.trim(),
+          address: newShopAddress.trim() || 'Abidjan',
+        });
+        resetShopForm();
+        await loadData(true);
+        onRefreshCatalogue();
+        showMessage('success', 'Boutique créée avec succès.');
+      }
     } catch (err: any) {
-      showMessage('error', err.message || 'Erreur création boutique.');
+      showMessage('error', err.message || 'Erreur lors de l’enregistrement de la boutique.');
     } finally {
       setActionLoading(false);
     }
@@ -558,8 +646,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               >
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                    <Plus className="w-5 h-5 text-blue-600" />
-                    Ajouter un article de test
+                    {editingArticleId !== null ? (
+                      <>
+                        <Pencil className="w-5 h-5 text-amber-600" />
+                        Modifier l&apos;article
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-5 h-5 text-blue-600" />
+                        Ajouter un article de test
+                      </>
+                    )}
                   </h3>
                   <button
                     type="button"
@@ -750,14 +847,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm shadow-md shadow-blue-600/20 transition flex items-center justify-center gap-2 disabled:opacity-50"
-                >
-                  <Plus className="w-4 h-4" />
-                  Publier l&apos;article maintenant
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className={`flex-1 py-3 rounded-xl text-white font-extrabold text-sm shadow-md transition flex items-center justify-center gap-2 disabled:opacity-50 ${
+                      editingArticleId !== null
+                        ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/20'
+                        : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+                    }`}
+                  >
+                    {editingArticleId !== null ? (
+                      <>
+                        <Pencil className="w-4 h-4" />
+                        Enregistrer les modifications
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="w-4 h-4" />
+                        Publier l&apos;article maintenant
+                      </>
+                    )}
+                  </button>
+                  {editingArticleId !== null && (
+                    <button
+                      type="button"
+                      onClick={resetArticleForm}
+                      className="px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition flex items-center gap-1"
+                      title="Annuler la modification"
+                    >
+                      <X className="w-4 h-4" />
+                      Annuler
+                    </button>
+                  )}
+                </div>
               </form>
             </div>
 
@@ -803,18 +926,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </div>
                     </div>
 
-                    <button
-                      onClick={async () => {
-                        await adminDeleteArticle(art.id);
-                        await loadData(true);
-                        onRefreshCatalogue();
-                        showMessage('success', `Article « ${art.name} » supprimé.`);
-                      }}
-                      className="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition shrink-0"
-                      title="Supprimer cet article"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => startEditArticle(art)}
+                        className="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-600 transition"
+                        title="Modifier cet article"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await adminDeleteArticle(art.id);
+                          if (editingArticleId === art.id) resetArticleForm();
+                          await loadData(true);
+                          onRefreshCatalogue();
+                          showMessage('success', `Article « ${art.name} » supprimé.`);
+                        }}
+                        className="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition"
+                        title="Supprimer cet article"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -963,8 +1098,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4"
               >
                 <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                  <Store className="w-5 h-5 text-blue-600" />
-                  Créer une boutique
+                  {editingShopId !== null ? (
+                    <>
+                      <Pencil className="w-5 h-5 text-amber-600" />
+                      Modifier la boutique
+                    </>
+                  ) : (
+                    <>
+                      <Store className="w-5 h-5 text-blue-600" />
+                      Créer une boutique
+                    </>
+                  )}
                 </h3>
                 <input
                   type="text"
@@ -996,13 +1140,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   placeholder="Quartier / Adresse à Abidjan"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm"
                 />
-                <button
-                  type="submit"
-                  disabled={actionLoading}
-                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-sm"
-                >
-                  Ajouter la boutique
-                </button>
+                {editingShopId !== null && (
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={newShopIsOpen}
+                      onChange={(e) => setNewShopIsOpen(e.target.checked)}
+                      className="rounded border-slate-300 text-blue-600"
+                    />
+                    Boutique ouverte
+                  </label>
+                )}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={actionLoading}
+                    className={`flex-1 py-2.5 rounded-xl text-white font-extrabold text-sm transition flex items-center justify-center gap-2 disabled:opacity-50 ${
+                      editingShopId !== null
+                        ? 'bg-amber-600 hover:bg-amber-700'
+                        : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    {editingShopId !== null ? 'Enregistrer les modifications' : 'Ajouter la boutique'}
+                  </button>
+                  {editingShopId !== null && (
+                    <button
+                      type="button"
+                      onClick={resetShopForm}
+                      className="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition"
+                    >
+                      Annuler
+                    </button>
+                  )}
+                </div>
               </form>
             </div>
 
@@ -1035,18 +1205,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         Gérant : {shop.owner_name || 'N/A'} · Tél : {shop.phone} · {shop.address || 'Abidjan'}
                       </p>
                     </div>
-                    <button
-                      onClick={async () => {
-                        await adminDeleteShop(shop.id);
-                        await loadData(true);
-                        onRefreshCatalogue();
-                        showMessage('success', `Boutique « ${shop.name} » supprimée.`);
-                      }}
-                      className="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600"
-                      title="Supprimer cette boutique et ses articles"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => startEditShop(shop)}
+                        className="p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-600 transition"
+                        title="Modifier cette boutique"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await adminDeleteShop(shop.id);
+                          if (editingShopId === shop.id) resetShopForm();
+                          await loadData(true);
+                          onRefreshCatalogue();
+                          showMessage('success', `Boutique « ${shop.name} » supprimée.`);
+                        }}
+                        className="p-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition"
+                        title="Supprimer cette boutique et ses articles"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 ))
               )}

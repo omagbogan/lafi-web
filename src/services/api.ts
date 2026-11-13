@@ -506,6 +506,34 @@ export async function adminCreateArticle(data: {
   return res.json();
 }
 
+export async function adminUpdateArticle(
+  articleId: number,
+  data: {
+    name?: string;
+    price?: number;
+    category?: string;
+    description?: string;
+    photo_url?: string;
+    photos?: string[];
+    shop_id?: number;
+    shop_name?: string;
+    shop_phone?: string;
+    shop_address?: string;
+    negotiable?: boolean;
+  }
+): Promise<Article> {
+  const res = await fetch(`${API_BASE}/admin/articles/${articleId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || "Erreur lors de la modification de l'article");
+  }
+  return res.json();
+}
+
 export async function adminDeleteArticle(articleId: number): Promise<void> {
   const res = await fetch(`${API_BASE}/admin/articles/${articleId}`, {
     method: 'DELETE',
@@ -530,6 +558,29 @@ export async function adminCreateShop(data: {
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || 'Erreur lors de la création de la boutique');
+  }
+  return res.json();
+}
+
+export async function adminUpdateShop(
+  shopId: number,
+  data: {
+    name?: string;
+    owner_name?: string;
+    phone?: string;
+    address?: string;
+    email?: string;
+    is_open?: boolean;
+  }
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/admin/shops/${shopId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Erreur lors de la modification de la boutique');
   }
   return res.json();
 }
