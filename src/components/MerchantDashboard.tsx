@@ -56,7 +56,6 @@ interface MerchantDashboardProps {
 }
 
 export const MerchantDashboard: React.FC<MerchantDashboardProps> = ({
-  articles: initialArticles,
   onRefreshArticles,
   user,
   onLogout,
@@ -73,7 +72,7 @@ export const MerchantDashboard: React.FC<MerchantDashboardProps> = ({
   const [copiedLink, setCopiedLink] = useState(false);
 
   // Shop Local Articles (including hidden & out of stock)
-  const [shopArticles, setShopArticles] = useState<Article[]>(initialArticles);
+  const [shopArticles, setShopArticles] = useState<Article[]>([]);
   const [loadingArticles, setLoadingArticles] = useState(false);
 
   // Orders State
@@ -141,13 +140,9 @@ export const MerchantDashboard: React.FC<MerchantDashboardProps> = ({
     setLoadingArticles(true);
     try {
       const data = await fetchShopArticles(shopId);
-      if (data && data.length > 0) {
-        setShopArticles(data);
-      } else {
-        setShopArticles(initialArticles);
-      }
+      setShopArticles(data || []);
     } catch {
-      setShopArticles(initialArticles);
+      setShopArticles([]);
     } finally {
       setLoadingArticles(false);
     }
@@ -171,12 +166,10 @@ export const MerchantDashboard: React.FC<MerchantDashboardProps> = ({
     loadShopOrders();
   }, [shopId]);
 
-  // Synchronize when initialArticles update from parent
+  // Initialisation au montage du composant
   useEffect(() => {
-    if (initialArticles.length > 0 && shopArticles.length === 0) {
-      setShopArticles(initialArticles);
-    }
-  }, [initialArticles]);
+    loadShopArticles();
+  }, [shopId]);
 
   // Auto-detect NLP category when typing article title
   useEffect(() => {
