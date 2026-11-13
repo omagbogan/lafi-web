@@ -76,14 +76,6 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
       list.push('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80');
     }
 
-    // Si une seule image est disponible, on propose 2 vues de détails complémentaires
-    if (list.length === 1) {
-      list.push(
-        `${list[0]}&view=detail`,
-        `${list[0]}&view=pack`
-      );
-    }
-
     return list;
   }, [article]);
 
@@ -189,26 +181,28 @@ export const ArticleDetailModal: React.FC<ArticleDetailModalProps> = ({
           </div>
 
           {/* Bottom Thumbnails / Indicators */}
-          <div className="w-full flex items-center justify-center gap-2 mt-3 z-10 pt-1">
-            {images.map((img, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => setActiveImageIndex(idx)}
-                className={`relative rounded-xl overflow-hidden bg-white shadow-sm transition-all cursor-pointer border-0 ${activeImageIndex === idx
-                  ? 'ring-2 ring-blue-600 scale-105 opacity-100 w-11 h-11'
-                  : 'opacity-50 hover:opacity-100 w-10 h-10'
-                  }`}
-                title={`Afficher image ${idx + 1}`}
-              >
-                <img
-                  src={resolveImageUrl(img)}
-                  alt={`Vignette ${idx + 1}`}
-                  className="w-full h-full object-cover"
-                />
-              </button>
-            ))}
-          </div>
+          {images.length > 1 && (
+            <div className="w-full flex items-center justify-center gap-2 mt-3 z-10 pt-1">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveImageIndex(idx)}
+                  className={`relative rounded-xl overflow-hidden bg-white shadow-sm transition-all cursor-pointer border-0 ${activeImageIndex === idx
+                    ? 'ring-2 ring-blue-600 scale-105 opacity-100 w-11 h-11'
+                    : 'opacity-50 hover:opacity-100 w-10 h-10'
+                    }`}
+                  title={`Afficher image ${idx + 1}`}
+                >
+                  <img
+                    src={resolveImageUrl(img)}
+                    alt={`Vignette ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Right: Details & Buying Actions */}
